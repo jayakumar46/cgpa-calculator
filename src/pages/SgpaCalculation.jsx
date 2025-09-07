@@ -65,7 +65,7 @@ export default function SGPAForm() {
 
   return (
     <div
-      style={{ backgroundImage: `url(${bgImg})` }}
+      // style={{ backgroundImage: `url(${bgImg})` }}
       className="flex w-full min-h-screen justify-center items-center bg-cover bg-no-repeat relative"
     >
       {/* Overlay */}

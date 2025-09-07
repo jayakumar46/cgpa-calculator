@@ -8,7 +8,7 @@ const Home = () => {
     <>
       <div
         style={{ backgroundImage: `url(${bgImg})` }}
-        className="flex justify-center items-center w-full min-h-screen bg-no-repeat bg-cover bg-center"
+        className="flex justify-center items-center w-full min-h-screen bg-no-repeat bg-cover bg-center hero"
       >
         {/* Overlay for readability */}
         <div className="absolute inset-0 bg-black/40"></div>
