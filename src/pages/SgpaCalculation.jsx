@@ -13,21 +13,25 @@ function marksToGradePoint(marks) {
   return 0;
 }
 
-function computeSGPA(subjects) {
+function computeSGPA(subjects, withMarks) {
   let totalWeighted = 0,
     totalCredits = 0;
   for (const s of subjects) {
     const credits = Number(s.credits) || 0;
     if (!credits) continue;
     totalCredits += credits;
-    let gp =
-      s.gradePoint !== "" && s.gradePoint != null ? Number(s.gradePoint) : null;
-    if (gp === null || Number.isNaN(gp)) {
+
+    let gp = 0;
+    if (withMarks) {
       gp =
         s.marks !== "" && s.marks != null
           ? marksToGradePoint(Number(s.marks))
           : 0;
+    } else {
+      gp =
+        s.gradePoint !== "" && s.gradePoint != null ? Number(s.gradePoint) : 0;
     }
+
     totalWeighted += gp * credits;
   }
   if (totalCredits === 0) return 0;
@@ -39,6 +43,7 @@ export default function SGPAForm() {
     { name: "Subject 1", marks: "", gradePoint: "", credits: 3 },
   ]);
   const [sgpa, setSgpa] = useState(null);
+  const [withMarks, setWithMarks] = useState(true);
 
   const addRow = () =>
     setSubjects([
@@ -59,33 +64,62 @@ export default function SGPAForm() {
 
   const calculate = (e) => {
     e.preventDefault();
-    const result = computeSGPA(subjects);
+    const result = computeSGPA(subjects, withMarks);
     setSgpa(result);
   };
 
   return (
     <div
-      // style={{ backgroundImage: `url(${bgImg})` }}
+      style={{ backgroundImage: `url(${bgImg})` }}
       className="flex w-full min-h-screen justify-center items-center bg-cover bg-no-repeat relative"
     >
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/60 to-black/70"></div>
+      <div className="absolute inset-0 bg-black/50"></div>
 
-      {/* Card */}
       <div className="relative z-10 bg-white/20 backdrop-blur-lg p-6 sm:p-10 rounded-2xl shadow-2xl w-full max-w-5xl">
         <h2 className="text-center text-xl sm:text-3xl font-extrabold uppercase text-white tracking-wide">
           🎓 SGPA Calculator
         </h2>
 
+        {/* Fancy Toggle Switch */}
+        {/* Fancy Toggle Switch */}
+        <div className="flex justify-center mt-4">
+          <div
+            className="relative inline-flex items-center cursor-pointer w-52 h-10 bg-gray-700 rounded-full p-1"
+            onClick={() => setWithMarks(!withMarks)}
+          >
+            {/* Labels */}
+            <span
+              className={`absolute left-2 text-white font-semibold text-sm transition-colors  ${
+                withMarks ? "text-green-400" : "text-white"
+              }`}
+            >
+              With Marks
+            </span>
+            <span
+              className={`absolute right-2 text-white font-semibold text-sm transition-colors ${
+                !withMarks ? "text-green-400" : "text-white"
+              }`}
+            >
+              With Grade Points
+            </span>
+
+            {/* Sliding Knob */}
+            <span
+              className={`absolute top-1  h-8 bg-white rounded-full shadow-md transition-transform ${
+                withMarks ? "left-1 w-[112px]" : "right-1 w-[120px]"
+              }`}
+            ></span>
+          </div>
+        </div>
+
         <form onSubmit={calculate} className="mt-6">
-          {/* Responsive Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-white">
               <thead>
                 <tr className="uppercase bg-white/10">
-                  <th className="p-3">Name</th>
-                  <th className="p-3">Marks</th>
-                  <th className="p-3">Grade Point</th>
+                  <th className="p-3 ">Name</th>
+                  {withMarks && <th className="p-4 ">Marks</th>}
+                  {!withMarks && <th className="p-4 ">Grade Point</th>}
                   <th className="p-3">Credits</th>
                 </tr>
               </thead>
@@ -100,31 +134,38 @@ export default function SGPAForm() {
                         placeholder="Subject Name"
                       />
                     </td>
-                    <td className="p-2">
-                      <input
-                        className="border border-gray-300 bg-white/20 p-2 w-full outline-none rounded text-white placeholder-gray-300 focus:ring-2 focus:ring-green-400 transition"
-                        value={s.marks}
-                        onChange={(e) => update(i, "marks", e.target.value)}
-                        type="number"
-                        min="0"
-                        max="100"
-                        placeholder="Marks"
-                      />
-                    </td>
-                    <td className="p-2">
-                      <input
-                        className="border border-gray-300 bg-white/20 p-2 w-full outline-none rounded text-white placeholder-gray-300 focus:ring-2 focus:ring-green-400 transition"
-                        value={s.gradePoint}
-                        onChange={(e) =>
-                          update(i, "gradePoint", e.target.value)
-                        }
-                        type="number"
-                        min="0"
-                        max="10"
-                        step="0.1"
-                        placeholder="GP"
-                      />
-                    </td>
+
+                    {withMarks && (
+                      <td className="p-2">
+                        <input
+                          className="border border-gray-300 bg-white/20 p-2 w-full outline-none rounded text-white placeholder-gray-300 focus:ring-2 focus:ring-green-400 transition"
+                          value={s.marks}
+                          onChange={(e) => update(i, "marks", e.target.value)}
+                          type="number"
+                          min="0"
+                          max="100"
+                          placeholder="Marks"
+                        />
+                      </td>
+                    )}
+
+                    {!withMarks && (
+                      <td className="p-2">
+                        <input
+                          className="border border-gray-300 bg-white/20 p-2 w-full outline-none rounded text-white placeholder-gray-300 focus:ring-2 focus:ring-green-400 transition"
+                          value={s.gradePoint}
+                          onChange={(e) =>
+                            update(i, "gradePoint", e.target.value)
+                          }
+                          type="number"
+                          min="0"
+                          max="10"
+                          step="0.1"
+                          placeholder="GP"
+                        />
+                      </td>
+                    )}
+
                     <td className="p-2">
                       <input
                         className="border border-gray-300 bg-white/20 p-2 w-full outline-none rounded text-white placeholder-gray-300 focus:ring-2 focus:ring-green-400 transition"
@@ -141,7 +182,6 @@ export default function SGPAForm() {
             </table>
           </div>
 
-          {/* Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 mt-6">
             <button
               type="button"
@@ -159,16 +199,14 @@ export default function SGPAForm() {
           </div>
         </form>
 
-        {/* Result */}
         {sgpa !== null && (
           <div className="mt-6 text-center">
-            <div className="bg-green-500/80 text-white font-extrabold text-lg sm:text-2xl py-3 px-5 rounded-lg shadow-lg  animate-bounce">
+            <div className="bg-green-500/80 text-white font-extrabold text-lg sm:text-2xl py-3 px-5 rounded-lg shadow-lg animate-bounce">
               SGPA: {sgpa}
             </div>
           </div>
         )}
 
-        {/* Navigation */}
         <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-3 text-white">
           <Link
             to="/"
