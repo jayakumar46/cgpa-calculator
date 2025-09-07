@@ -6,10 +6,10 @@ import bgImg from "../assets/bg-2.jpg";
 const gradeMap = {
   O: 10,
   "A+": 9,
-  B: 8,
+  A: 8,
   "B+": 7,
-  C: 6,
-  D: 5,
+  B: 6,
+  C: 5,
   F: 0,
 };
 
