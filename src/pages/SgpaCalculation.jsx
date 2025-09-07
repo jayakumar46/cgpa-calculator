@@ -3,6 +3,16 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import bgImg from "../assets/bg-2.jpg";
 
+const gradeMap = {
+  "A+": 10,
+  A: 9,
+  "B+": 8,
+  B: 7,
+  C: 6,
+  D: 5,
+  F: 0,
+};
+
 function marksToGradePoint(marks) {
   if (marks >= 90) return 10;
   if (marks >= 80) return 9;
@@ -13,34 +23,9 @@ function marksToGradePoint(marks) {
   return 0;
 }
 
-function computeSGPA(subjects, withMarks) {
-  let totalWeighted = 0,
-    totalCredits = 0;
-  for (const s of subjects) {
-    const credits = Number(s.credits) || 0;
-    if (!credits) continue;
-    totalCredits += credits;
-
-    let gp = 0;
-    if (withMarks) {
-      gp =
-        s.marks !== "" && s.marks != null
-          ? marksToGradePoint(Number(s.marks))
-          : 0;
-    } else {
-      gp =
-        s.gradePoint !== "" && s.gradePoint != null ? Number(s.gradePoint) : 0;
-    }
-
-    totalWeighted += gp * credits;
-  }
-  if (totalCredits === 0) return 0;
-  return Math.round((totalWeighted / totalCredits) * 100) / 100;
-}
-
 export default function SGPAForm() {
   const [subjects, setSubjects] = useState([
-    { name: "Subject 1", marks: "", gradePoint: "", credits: 3 },
+    { name: "Subject 1", marks: "", grade: "", gradePoint: "", credits: 3 },
   ]);
   const [sgpa, setSgpa] = useState(null);
   const [withMarks, setWithMarks] = useState(true);
@@ -51,6 +36,7 @@ export default function SGPAForm() {
       {
         name: `Subject ${subjects.length + 1}`,
         marks: "",
+        grade: "",
         gradePoint: "",
         credits: 3,
       },
@@ -59,13 +45,44 @@ export default function SGPAForm() {
   const update = (idx, key, value) => {
     const arr = [...subjects];
     arr[idx][key] = value;
+
+    // If grade is updated, automatically update gradePoint
+    if (key === "grade") arr[idx].gradePoint = gradeMap[value] || 0;
+
     setSubjects(arr);
+  };
+
+  const computeSGPA = () => {
+    let totalWeighted = 0,
+      totalCredits = 0;
+
+    for (const s of subjects) {
+      const credits = Number(s.credits) || 0;
+      if (!credits) continue;
+      totalCredits += credits;
+
+      let gp = 0;
+      if (withMarks) {
+        gp =
+          s.gradePoint !== ""
+            ? Number(s.gradePoint)
+            : s.marks !== ""
+            ? marksToGradePoint(Number(s.marks))
+            : 0;
+      } else {
+        gp = s.gradePoint !== "" ? Number(s.gradePoint) : 0;
+      }
+
+      totalWeighted += gp * credits;
+    }
+
+    if (totalCredits === 0) return 0;
+    return Math.round((totalWeighted / totalCredits) * 100) / 100;
   };
 
   const calculate = (e) => {
     e.preventDefault();
-    const result = computeSGPA(subjects, withMarks);
-    setSgpa(result);
+    setSgpa(computeSGPA());
   };
 
   return (
@@ -80,36 +97,24 @@ export default function SGPAForm() {
           🎓 SGPA Calculator
         </h2>
 
-        {/* Fancy Toggle Switch */}
-        {/* Fancy Toggle Switch */}
-        <div className="flex justify-center mt-4">
-          <div
-            className="relative inline-flex items-center cursor-pointer w-52 h-10 bg-gray-700 rounded-full p-1"
-            onClick={() => setWithMarks(!withMarks)}
+        {/* Toggle */}
+        <div className="flex justify-center gap-4 mt-4">
+          <button
+            onClick={() => setWithMarks(true)}
+            className={`px-4 py-2 rounded-lg font-semibold ${
+              withMarks ? "bg-green-500 text-white" : "bg-white/20 text-white"
+            }`}
           >
-            {/* Labels */}
-            <span
-              className={`absolute left-2 text-white font-semibold text-sm transition-colors  ${
-                withMarks ? "text-green-400" : "text-white"
-              }`}
-            >
-              With Marks
-            </span>
-            <span
-              className={`absolute right-2 text-white font-semibold text-sm transition-colors ${
-                !withMarks ? "text-green-400" : "text-white"
-              }`}
-            >
-              With Grade Points
-            </span>
-
-            {/* Sliding Knob */}
-            <span
-              className={`absolute top-1  h-8 bg-white rounded-full shadow-md transition-transform ${
-                withMarks ? "left-1 w-[112px]" : "right-1 w-[120px]"
-              }`}
-            ></span>
-          </div>
+            With Marks
+          </button>
+          <button
+            onClick={() => setWithMarks(false)}
+            className={`px-4 py-2 rounded-lg font-semibold ${
+              !withMarks ? "bg-green-500 text-white" : "bg-white/20 text-white"
+            }`}
+          >
+            Without Marks
+          </button>
         </div>
 
         <form onSubmit={calculate} className="mt-6">
@@ -117,9 +122,10 @@ export default function SGPAForm() {
             <table className="w-full text-sm text-white">
               <thead>
                 <tr className="uppercase bg-white/10">
-                  <th className="p-3 ">Name</th>
-                  {withMarks && <th className="p-4 ">Marks</th>}
-                  {!withMarks && <th className="p-4 ">Grade Point</th>}
+                  <th className="p-3">Name</th>
+                  {withMarks && <th className="p-3">Marks</th>}
+                  <th className="p-3">Grade</th>
+                  <th className="p-3">Grade Point</th>
                   <th className="p-3">Credits</th>
                 </tr>
               </thead>
@@ -149,22 +155,39 @@ export default function SGPAForm() {
                       </td>
                     )}
 
-                    {!withMarks && (
-                      <td className="p-2">
-                        <input
-                          className="border border-gray-300 bg-white/20 p-2 w-full outline-none rounded text-white placeholder-gray-300 focus:ring-2 focus:ring-green-400 transition"
-                          value={s.gradePoint}
-                          onChange={(e) =>
-                            update(i, "gradePoint", e.target.value)
-                          }
-                          type="number"
-                          min="0"
-                          max="10"
-                          step="0.1"
-                          placeholder="GP"
-                        />
-                      </td>
-                    )}
+                    <td className="p-2">
+                      <select
+                        className="border border-gray-300 bg-white/20 p-2 w-full outline-none rounded text-white placeholder-gray-300 focus:ring-2 focus:ring-green-400 transition"
+                        value={s.grade}
+                        onChange={(e) => update(i, "grade", e.target.value)}
+                      >
+                        <option value="">Select</option>
+                        {Object.keys(gradeMap).map((g) => (
+                          <option
+                            key={g}
+                            value={g}
+                            className="bg-black/30 font-medium "
+                          >
+                            {g}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+
+                    <td className="p-2">
+                      <input
+                        className="border border-gray-300 bg-white/20 p-2 w-full outline-none rounded text-white placeholder-gray-300 focus:ring-2 focus:ring-green-400 transition"
+                        value={s.gradePoint}
+                        onChange={(e) =>
+                          update(i, "gradePoint", e.target.value)
+                        }
+                        type="number"
+                        min="0"
+                        max="10"
+                        step="0.1"
+                        placeholder="GP"
+                      />
+                    </td>
 
                     <td className="p-2">
                       <input
