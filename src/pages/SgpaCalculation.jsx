@@ -4,10 +4,10 @@ import { Link } from "react-router-dom";
 import bgImg from "../assets/bg-2.jpg";
 
 const gradeMap = {
-  "A+": 10,
-  A: 9,
-  "B+": 8,
-  B: 7,
+  O: 10,
+  "A+": 9,
+  B: 8,
+  "B+": 7,
   C: 6,
   D: 5,
   F: 0,
