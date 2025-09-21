@@ -5,7 +5,7 @@ import bgImg from "../assets/bg-2.jpg";
 
 export default function CGPAForm() {
   const [semesters, setSemesters] = useState([
-    { name: "Semester 1", sgpa: "", credits: "" },
+    { name: "Semester 1", sgpa: "" },
   ]);
   const [cgpa, setCgpa] = useState(null);
 
@@ -15,7 +15,6 @@ export default function CGPAForm() {
       {
         name: `Semester ${semesters.length + 1}`,
         sgpa: "",
-        credits: "",
       },
     ]);
 
@@ -31,18 +30,10 @@ export default function CGPAForm() {
   };
 
   const computeCGPA = () => {
-    let totalWeighted = 0,
-      totalCredits = 0;
-
-    for (const s of semesters) {
-      const sgpa = Number(s.sgpa) || 0;
-      const credits = Number(s.credits) || 0;
-      totalWeighted += sgpa * credits;
-      totalCredits += credits;
-    }
-
-    if (totalCredits === 0) return 0;
-    return Math.round((totalWeighted / totalCredits) * 100) / 100;
+    const validSemesters = semesters.filter((s) => s.sgpa !== "");
+    const total = validSemesters.reduce((acc, s) => acc + Number(s.sgpa || 0), 0);
+    if (validSemesters.length === 0) return 0;
+    return total / validSemesters.length; // full decimal, no rounding
   };
 
   const calculate = (e) => {
@@ -70,7 +61,6 @@ export default function CGPAForm() {
                 <tr className="uppercase bg-white/10">
                   <th className="p-3">Semester</th>
                   <th className="p-3">SGPA</th>
-                  <th className="p-3">Credits</th>
                   <th className="p-3">Action</th>
                 </tr>
               </thead>
@@ -93,18 +83,8 @@ export default function CGPAForm() {
                         type="number"
                         min="0"
                         max="10"
-                        step="0.1"
+                        step="any"
                         placeholder="SGPA"
-                      />
-                    </td>
-                    <td className="p-2">
-                      <input
-                        className="border border-gray-300 bg-white/20 p-2 w-full outline-none rounded text-white placeholder-gray-300 focus:ring-2 focus:ring-green-400 transition"
-                        value={s.credits}
-                        onChange={(e) => update(i, "credits", e.target.value)}
-                        type="number"
-                        min="0"
-                        placeholder="Credits"
                       />
                     </td>
                     <td className="p-2 text-center">
