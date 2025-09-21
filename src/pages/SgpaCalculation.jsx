@@ -1,17 +1,7 @@
-import { ArrowBigRight, Home } from "lucide-react";
+import { ArrowBigRight, Home, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import bgImg from "../assets/bg-2.jpg";
-
-const gradeMap = {
-  O: 10,
-  "A+": 9,
-  A: 8,
-  "B+": 7,
-  B: 6,
-  C: 5,
-  F: 0,
-};
 
 function marksToGradePoint(marks) {
   if (marks >= 90) return 10;
@@ -25,7 +15,7 @@ function marksToGradePoint(marks) {
 
 export default function SGPAForm() {
   const [subjects, setSubjects] = useState([
-    { name: "Subject 1", marks: "", grade: "", gradePoint: "", credits: 3 },
+    { name: "Subject 1", marks: "", gradePoint: "", credits: 3 },
   ]);
   const [sgpa, setSgpa] = useState(null);
   const [withMarks, setWithMarks] = useState(true);
@@ -36,19 +26,19 @@ export default function SGPAForm() {
       {
         name: `Subject ${subjects.length + 1}`,
         marks: "",
-        grade: "",
         gradePoint: "",
         credits: 3,
       },
     ]);
 
+  const removeRow = (idx) => {
+    const arr = subjects.filter((_, i) => i !== idx);
+    setSubjects(arr);
+  };
+
   const update = (idx, key, value) => {
     const arr = [...subjects];
     arr[idx][key] = value;
-
-    // If grade is updated, automatically update gradePoint
-    if (key === "grade") arr[idx].gradePoint = gradeMap[value] || 0;
-
     setSubjects(arr);
   };
 
@@ -61,16 +51,16 @@ export default function SGPAForm() {
       if (!credits) continue;
       totalCredits += credits;
 
-      let gp = 0;
+      let gp;
       if (withMarks) {
         gp =
-          s.gradePoint !== ""
+          s.gradePoint !== "" && s.gradePoint != null
             ? Number(s.gradePoint)
-            : s.marks !== ""
+            : s.marks !== "" && s.marks != null
             ? marksToGradePoint(Number(s.marks))
             : 0;
       } else {
-        gp = s.gradePoint !== "" ? Number(s.gradePoint) : 0;
+        gp = Number(s.gradePoint) || 0;
       }
 
       totalWeighted += gp * credits;
@@ -82,7 +72,8 @@ export default function SGPAForm() {
 
   const calculate = (e) => {
     e.preventDefault();
-    setSgpa(computeSGPA());
+    const result = computeSGPA();
+    setSgpa(result);
   };
 
   return (
@@ -97,7 +88,7 @@ export default function SGPAForm() {
           🎓 SGPA Calculator
         </h2>
 
-        {/* Toggle */}
+        {/* Toggle Button */}
         <div className="flex justify-center gap-4 mt-4">
           <button
             onClick={() => setWithMarks(true)}
@@ -124,9 +115,9 @@ export default function SGPAForm() {
                 <tr className="uppercase bg-white/10">
                   <th className="p-3">Name</th>
                   {withMarks && <th className="p-3">Marks</th>}
-                  <th className="p-3">Grade</th>
-                  <th className="p-3">Grade Point</th>
+                  <th className="p-3">{withMarks ? "Grade Point" : "Grade"}</th>
                   <th className="p-3">Credits</th>
+                  <th className="p-3">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -140,7 +131,6 @@ export default function SGPAForm() {
                         placeholder="Subject Name"
                       />
                     </td>
-
                     {withMarks && (
                       <td className="p-2">
                         <input
@@ -154,26 +144,6 @@ export default function SGPAForm() {
                         />
                       </td>
                     )}
-
-                    <td className="p-2">
-                      <select
-                        className="border border-gray-300 bg-white/20 p-2 w-full outline-none rounded text-white placeholder-gray-300 focus:ring-2 focus:ring-green-400 transition"
-                        value={s.grade}
-                        onChange={(e) => update(i, "grade", e.target.value)}
-                      >
-                        <option value="">Select</option>
-                        {Object.keys(gradeMap).map((g) => (
-                          <option
-                            key={g}
-                            value={g}
-                            className="bg-black/30 font-medium "
-                          >
-                            {g}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-
                     <td className="p-2">
                       <input
                         className="border border-gray-300 bg-white/20 p-2 w-full outline-none rounded text-white placeholder-gray-300 focus:ring-2 focus:ring-green-400 transition"
@@ -188,7 +158,6 @@ export default function SGPAForm() {
                         placeholder="GP"
                       />
                     </td>
-
                     <td className="p-2">
                       <input
                         className="border border-gray-300 bg-white/20 p-2 w-full outline-none rounded text-white placeholder-gray-300 focus:ring-2 focus:ring-green-400 transition"
@@ -198,6 +167,15 @@ export default function SGPAForm() {
                         min="0"
                         placeholder="Credits"
                       />
+                    </td>
+                    <td className="p-2 text-center">
+                      <button
+                        type="button"
+                        onClick={() => removeRow(i)}
+                        className="bg-red-500 hover:bg-red-600 p-2 rounded-lg text-white transition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 ))}
